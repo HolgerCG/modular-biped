@@ -46,7 +46,12 @@
 
 #define NOVAL 1000
 
-#define MPU6050_ENABLED // Enable MPU6050
+// Deshabilitar el MPU6050
+// #define MPU6050_ENABLED
+
+// Habilitar el BNO055
+#define BNO055_ENABLED
+
 //#define MPU6050_DEBUG // Debug in serial plotter
 #define ANIMATE_ENABLED // Enable random animations
 

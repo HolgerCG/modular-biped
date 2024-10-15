@@ -3,6 +3,8 @@
 
 #include "Config.h"
 #include "InverseKinematics.h"
+#include "ServoEasing.hpp"
+
 
 // Left Leg
 ServoEasing ServoLLH; // Hip
@@ -63,31 +65,23 @@ public:
 
     // Adjust hips to compensate for angle of body
     // Read pitch (input from MPU6050) and adjust hips accordingly
-    void hipAdjust(double pitch)
-    {
-        double startingOffset = 3.5;
-        
-        double threshold = 5.0; // Do not move if less than this
-        #ifdef MPU6050_DEBUG
-        Serial.print("Pitch:");
-        Serial.print(pitch);
-        Serial.print(" TH:");
-        Serial.print(threshold+startingOffset);
-        Serial.print(" TL:");
-        Serial.println(-threshold+startingOffset);
-        #endif
-        if (pitch < threshold+startingOffset && pitch > -threshold+startingOffset)
-        {
-            return;
-        }
+    void hipAdjust(double pitch) {
+    double startingOffset = 0.0; // Ajusta este valor si es necesario
+    double threshold = 5.0; // Umbral para evitar ajustes innecesarios
 
-        if (abs(pitch) > threshold) { 
-          pitch = pitch*0.5;
-        }
-        ik.hipAdjust(ik.hipAdjustment - pitch);
-        moveSingleServo(0, pitch, true);
-        moveSingleServo(3, -pitch, true);
+    // Si el pitch está dentro del umbral, no hacer nada
+    if (abs(pitch - startingOffset) < threshold) {
+        return;
     }
+
+    // Ajustar el pitch si es necesario
+    double adjustedPitch = pitch * 0.5; // Factor de escala, ajústalo según necesites
+
+    ik.hipAdjust(ik.hipAdjustment - adjustedPitch);
+    moveSingleServo(0, adjustedPitch, true);
+    moveSingleServo(3, -adjustedPitch, true);
+}
+
 
     void moveServos(int *Pos)
     {

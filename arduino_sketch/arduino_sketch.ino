@@ -11,16 +11,17 @@
 #include "Order.h"
 #include "PiConnect.h"
 #include "ServoManager.h"
-#ifdef MPU6050_ENABLED
-#include "Mpu6050.h"
+#include "InverseKinematics.h"
+#ifdef BNO055_ENABLED
+#include "Bno055.h"
 #endif
 
 // #define DEBUG
 
 PiConnect pi;
 ServoManager servoManager;
-#ifdef MPU6050_ENABLED
-Mpu6050 tilt;
+#ifdef BNO055_ENABLED
+Bno055 tilt;
 #endif
 
 bool isResting = false;
@@ -65,9 +66,15 @@ void setup()
   servoManager.doInit();
   servoManager.setSpeed(SERVO_SPEED_MIN);
 
-  #ifdef MPU6050_ENABLED
+// Inicializar el sensor BNO055
+  #ifdef BNO055_ENABLED
   tilt.doInit();
+  // Verificar el estado de calibración del sensor
+  checkCalibration();
   #endif
+
+
+
 
   // Seed random number generator
   randomSeed(analogRead(0));
@@ -153,13 +160,11 @@ void stationarySteps() {
   }
 }
 
-#ifdef MPU6050_ENABLED
-void hipAdjust()
-{
-  tilt.read();
-  //Serial.println(tilt.getPitch());
-  servoManager.hipAdjust(tilt.getPitch());
-  setEaseToForAllServosSynchronizeAndStartInterrupt(servoManager.getSpeed());
+#ifdef Bno055_ENABLED
+void hipAdjust() {
+    tilt.read();
+    servoManager.hipAdjust(tilt.getPitch());
+    setEaseToForAllServosSynchronizeAndStartInterrupt(servoManager.getSpeed());
 }
 #endif
 
@@ -169,7 +174,7 @@ void loop()
     servoManager.calibrate();
   #endif
 
-  #ifdef MPU6050_ENABLED
+  #ifdef Bno055_ENABLED
   hipAdjust();
   #endif
   //  This needs to be here rather than in the ServoManager, otherwise it doesn't work.
@@ -224,6 +229,21 @@ boolean isSleeping()
 {
   return millis() - bootTime < sleepTime;
 }
+
+void checkCalibration() {
+    uint8_t system, gyro, accel, mag;
+    tilt.getCalibration(&system, &gyro, &accel, &mag);
+
+    Serial.print("Calibración - Sistema: ");
+    Serial.print(system, DEC);
+    Serial.print(", Giro: ");
+    Serial.print(gyro, DEC);
+    Serial.print(", Acel: ");
+    Serial.print(accel, DEC);
+    Serial.print(", Mag: ");
+    Serial.println(mag, DEC);
+}
+
 
 void animateRandomly()
 {
