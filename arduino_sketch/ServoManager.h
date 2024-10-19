@@ -65,7 +65,7 @@ public:
 
     // Adjust hips to compensate for angle of body
     // Read pitch (input from MPU6050) and adjust hips accordingly
-    void hipAdjust(double pitch) {
+void hipAdjust(double pitch) {
     double startingOffset = 0.0; // Ajusta este valor si es necesario
     double threshold = 5.0; // Umbral para evitar ajustes innecesarios
 
@@ -75,12 +75,31 @@ public:
     }
 
     // Ajustar el pitch si es necesario
-    double adjustedPitch = pitch * 0.5; // Factor de escala, ajústalo según necesites
+    double adjustedPitch = (pitch - startingOffset) * 0.5; // Factor de escala, ajústalo según necesites
 
-    ik.hipAdjust(ik.hipAdjustment - adjustedPitch);
-    moveSingleServo(0, adjustedPitch, true);
-    moveSingleServo(3, -adjustedPitch, true);
+    // Convertir a entero
+    int servoAdjustment = (int)adjustedPitch;
+
+    // Asegurar que el ajuste es significativo
+    if (servoAdjustment == 0) {
+        return;
+    }
+
+    // Imprimir valores para depuración
+    #ifdef DEBUG
+    Serial.print("Pitch: ");
+    Serial.print(pitch);
+    Serial.print(" Adjusted Pitch: ");
+    Serial.print(adjustedPitch);
+    Serial.print(" Servo Adjustment: ");
+    Serial.println(servoAdjustment);
+    #endif
+
+    // Ajustar los servos de las caderas
+    moveSingleServo(0, servoAdjustment, true);  // Servo de la cadera izquierda
+    moveSingleServo(3, -servoAdjustment, true); // Servo de la cadera derecha
 }
+
 
 
     void moveServos(int *Pos)
@@ -121,23 +140,41 @@ public:
         moveSingleServo(pServoIndex, realChange, isRelative);
     }
 
-    void moveSingleServo(uint8_t pServoIndex, int pPos, boolean isRelative)
+   void moveSingleServo(uint8_t pServoIndex, int pPos, boolean isRelative)
+{
+    if ((backpack == true || restrainingBolt == true) && pServoIndex < 6)
     {
-        if ((backpack == true || restrainingBolt == true) && pServoIndex < 6)
+        // Serial.println("Backpack or restrained mode, skipping leg servos");
+    }
+    else
+    {
+        int newPos;
+        if (isRelative)
         {
-            // Serial.println("Backpack or restrained mode, skipping leg servos");
-        }
-        else if (isRelative)
-        {
-            ServoEasing::ServoEasingNextPositionArray[pServoIndex] = ServoEasing::ServoEasingNextPositionArray[pServoIndex] + pPos;
+            newPos = ServoEasing::ServoEasingNextPositionArray[pServoIndex] + pPos;
         }
         else
         {
-            ServoEasing::ServoEasingNextPositionArray[pServoIndex] = pPos;
+            newPos = pPos;
         }
-        // Return actual value to Pi
-        PiConnect::write_i16(ServoEasing::ServoEasingNextPositionArray[pServoIndex]);
+
+        // Asegurarse de que la nueva posición está dentro de los límites
+        newPos = constrain(newPos, PosMin[pServoIndex], PosMax[pServoIndex]);
+
+        ServoEasing::ServoEasingNextPositionArray[pServoIndex] = newPos;
+
+        // Para depuración
+        #ifdef DEBUG
+        Serial.print("Servo ");
+        Serial.print(pServoIndex);
+        Serial.print(" moving to ");
+        Serial.println(newPos);
+        #endif
     }
+    // Return actual value to Pi
+    PiConnect::write_i16(ServoEasing::ServoEasingNextPositionArray[pServoIndex]);
+}
+
 
     void moveLegsAndStore(int x, int y, int *store)
     {

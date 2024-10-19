@@ -5,12 +5,12 @@
  * @brief Configuration file for the Arduino sketch.
  * @details This file contains the configuration for the Arduino sketch.
  */
-//#define SERVO_CALIBRATION_ENABLED // Enable servo calibration (see ServoManager::calibrate())
+//define SERVO_CALIBRATION_ENABLED // Enable servo calibration (see ServoManager::calibrate())
 //#define SERVO_CALIBRATION_SYMMETRICAL // Calculate and apply equivelant changes on other leg.
 
 #define SERVO_PIN_OFFSET 2 // Legacy, used to identify pin from pi communication
 // Left Leg
-#define PIN_SLLH 9 // Servo left leg hip
+#define PIN_SLLH 9 // Servo left leg hip(cadera)
 #define PIN_SLLK 10 // Servo left leg knee
 #define PIN_SLLA 11 // Servo left leg ankle
 // Right Leg
@@ -37,7 +37,7 @@
 #define SERVO_SPEED_MIN 20
 #define SERVO_SPEED_MAX 80
 
-// #define DEBUG
+//#define DEBUG
 
 #define SERVO_COUNT 8 // Number of servos to be controlled by ServoEasing
 

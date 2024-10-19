@@ -1,7 +1,7 @@
 /**
  * @file arduino_sketch2.ino
- * @brief Arduino sketch to control a 9 servo robot
- * @details This sketch animates a 9 servo bipedal robot using the ServoEasing library.
+ * @brief Arduino sketch to control a 8 servo robot
+ * @details This sketch animates a 8 servo bipedal robot using the ServoEasing library.
  * See the README.md file for more information.
  */
 
@@ -12,9 +12,11 @@
 #include "PiConnect.h"
 #include "ServoManager.h"
 #include "InverseKinematics.h"
-#ifdef BNO055_ENABLED
-#include "Bno055.h"
+#include "BNO055.h"
+#ifdef SERVO_CALIBRATION_ENABLED
+  servoManager.calibrate();
 #endif
+
 
 // #define DEBUG
 
@@ -160,7 +162,7 @@ void stationarySteps() {
   }
 }
 
-#ifdef Bno055_ENABLED
+#ifdef BNO055_ENABLED
 void hipAdjust() {
     tilt.read();
     servoManager.hipAdjust(tilt.getPitch());
@@ -174,7 +176,7 @@ void loop()
     servoManager.calibrate();
   #endif
 
-  #ifdef Bno055_ENABLED
+  #ifdef BNO055_ENABLED
   hipAdjust();
   #endif
   //  This needs to be here rather than in the ServoManager, otherwise it doesn't work.
